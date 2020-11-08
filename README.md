@@ -4,6 +4,8 @@
 React.jsでできている。
 - react-bootstrap
 - react-bootstrap-range-slider
+- @fortawesome/react-fontawesome
+- @fortawesome/fontawesome-svg-core
 
 ## 機能まとめ
 - 色の選択

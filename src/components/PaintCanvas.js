@@ -4,19 +4,24 @@ import { Button } from 'react-bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import RangeSlider from 'react-bootstrap-range-slider'
 import 'react-bootstrap-range-slider/dist/react-bootstrap-range-slider.css'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEraser } from '@fortawesome/free-solid-svg-icons'
 
 export default function PaintCanvas () {
   const canvasRef = useRef(null)
   const contextRef = useRef(null)
   const [drawFlg, setDrawFlg] = useState(false)
 
-  const colors = ['black', 'lightgray', 'tomato', 'royalblue', 'lightskyblue', 'khaki', 'forestgreen', 'orange', 'plum', 'white' ]
+  // const colors = ['black', 'lightgray', 'tomato', 'royalblue', 'lightskyblue', 'khaki', 'forestgreen', 'orange', 'plum', 'white' ]
   const [lineWid, setLineWid] = useState(2)
   const [shadowBlur, setShadowBlur] = useState(0)
   const width = 500
   const height = 400
   const canvasDesign = ['plane',　'parchment']
   const [designBack, setDesignBack] = useState('plane')
+  const [shadowColor, setShadowColor] = useState('#000000')
+  const [lineColor, setLineColor] = useState('#000000')
+  const [eraserFlg, setEraserFlg] = useState('OFF')
 
   // canvas設定
   useEffect(() => {
@@ -28,6 +33,7 @@ export default function PaintCanvas () {
     ctx.strokeStyle = "black"
     ctx.lineWidth = 2
     contextRef.current = ctx
+    contextRef.current.shadowColor = "#000000"
   }, [])
 
   // 描画開始
@@ -59,30 +65,44 @@ export default function PaintCanvas () {
     contextRef.current.clearRect(0, 0, width, height)
   }
 
-  // 色変更
-  const handleColorChange = (clr) => {
+  // 線の色
+  const handleLineColor = (e) => {
     contextRef.current.globalCompositeOperation = 'source-over'
-    contextRef.current.strokeStyle = clr
+    contextRef.current.strokeStyle = e.target.value
+    setLineColor(e.target.value)
   }
 
-  // 線の太さ
+  // 線の幅
   const handleLineChange = e => {
     contextRef.current.lineWidth = e.target.value
     setLineWid(e.target.value)
   }
 
-  // 消しゴム機能
-  const handleEraser = () => {
-    contextRef.current.globalCompositeOperation = 'destination-out'
-  }
-
   // 線の影
   const handleShadowBlur = e => {
-    contextRef.current.shadowColor = "gray"
     setShadowBlur(e.target.value)
     contextRef.current.shadowBlur = e.target.value
   }
 
+  // 線の影色
+  const handleShadowColor = e => {
+    contextRef.current.shadowColor = e.target.value
+    setShadowColor(e.target.value)
+  }
+
+  // 消しゴム機能
+  const handleSetEraser = () => {
+    if (eraserFlg === 'OFF') {
+      contextRef.current.globalCompositeOperation = 'destination-out'
+      setEraserFlg('ON')
+    } else if (eraserFlg === 'ON') {
+      contextRef.current.globalCompositeOperation = 'source-over'
+      setEraserFlg('OFF')
+      return
+    }
+  }
+
+  // 画像の保存
   const handleSaveClick = () => {
     const cvs = document.getElementById('myCanvas')
     const dataURL = cvs.toDataURL()
@@ -99,21 +119,11 @@ export default function PaintCanvas () {
     <div>
       <h1>Let's Painting!!</h1>
       <div>
-        {colors.map((clr) => {
-          return (
-            <button
-              key={clr}
-              style={{backgroundColor: clr}}
-              onClick={() => handleColorChange(clr)}
-            >
-            {clr}
-            </button>
-          )
-        })}
-        <button onClick={() => handleEraser()}>Eraser</button>
+        <button onClick={() => handleSetEraser()}><FontAwesomeIcon style={{padding: 5, fontSize: 30}} icon={faEraser} /></button>
+        <p>ERASER STATUS: {eraserFlg}</p>
         <table><tbody>
           <tr>
-            <td>line thickness</td>
+            <td>Line</td>
             <td>{lineWid}</td>
             <td>
               <RangeSlider
@@ -123,9 +133,10 @@ export default function PaintCanvas () {
                 onChange={(e) => handleLineChange(e)}
               />
             </td>
+            <td><input type="color" value={lineColor} onChange={(e) => handleLineColor(e)} /></td>
           </tr>
           <tr>
-            <td>shadow blur</td>
+            <td>Shadow</td>
             <td>{shadowBlur}</td>
             <td>
               <RangeSlider
@@ -135,15 +146,22 @@ export default function PaintCanvas () {
                 onChange={(e) => handleShadowBlur(e)}
               />
             </td>
+            <td><input type="color" value={shadowColor} onChange={(e) => handleShadowColor(e)} /></td>
+          </tr>
+          <tr>
+            <td>Background</td>
+            <td></td>
+            <td>
+              <select value={designBack} onChange={e => setDesignBack(e.target.value)}>
+                {canvasDesign.map((design) => {
+                  return (
+                    <option key={design} value={design}>{design}</option>
+                  )
+                })}
+              </select>
+            </td>
           </tr>
         </tbody></table>
-        <select value={designBack} onChange={e => setDesignBack(e.target.value)}>
-          {canvasDesign.map((design) => {
-            return (
-              <option key={design} value={design}>{design}</option>
-            )
-          })}
-        </select>
       </div>
 
       <canvas
@@ -158,11 +176,11 @@ export default function PaintCanvas () {
         onMouseLeave={finishDrawing}
       />
 
-      <p>※次のページへ行く前に必ず保存してください。(消えます！！！)</p>
+      {/* <p>※次のページへ行く前に必ず保存してください。(消えます！！！)</p> */}
       <div>
         <Button variant="outline-primary" onClick={() => handleSaveClick()}>Save</Button>
         <Button variant="outline-danger" onClick={() => handleClear()}>Clear</Button>
-        <Button variant="primary" onClick={() => {console.log('Clicked Complete!')}}>Complete</Button>
+        {/* <Button variant="primary" onClick={() => {console.log('Clicked Complete!')}}>Complete</Button> */}
       </div>
     </div>
   )
