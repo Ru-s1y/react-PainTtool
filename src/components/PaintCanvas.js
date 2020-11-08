@@ -15,7 +15,8 @@ export default function PaintCanvas () {
   const [shadowBlur, setShadowBlur] = useState(0)
   const width = 500
   const height = 400
-  const canvasDesign = ['plane',　'parchment' ]
+  const canvasDesign = ['plane',　'parchment']
+  const [designBack, setDesignBack] = useState('plane')
 
   // canvas設定
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function PaintCanvas () {
     ctx.lineCap = "round"
     ctx.lineJoin = "round"
     ctx.strokeStyle = "black"
-    ctx.lineWidth = lineWid
+    ctx.lineWidth = 2
     contextRef.current = ctx
   }, [])
 
@@ -82,6 +83,18 @@ export default function PaintCanvas () {
     contextRef.current.shadowBlur = e.target.value
   }
 
+  const handleSaveClick = () => {
+    const cvs = document.getElementById('myCanvas')
+    const dataURL = cvs.toDataURL()
+    console.log('dataURL: ', dataURL)
+    const newImg = document.createElement('a')
+    document.body.appendChild(newImg)
+    newImg.download = `image-${Date.now()}.png`
+    newImg.href = dataURL
+    newImg.click()
+    newImg.remove()
+  }
+
   return (
     <div>
       <h1>Let's Painting!!</h1>
@@ -124,12 +137,19 @@ export default function PaintCanvas () {
             </td>
           </tr>
         </tbody></table>
+        <select value={designBack} onChange={e => setDesignBack(e.target.value)}>
+          {canvasDesign.map((design) => {
+            return (
+              <option key={design} value={design}>{design}</option>
+            )
+          })}
+        </select>
       </div>
 
       <canvas
         id="myCanvas"
         ref={canvasRef}
-        className="canvas"
+        className={designBack}
         width={width}
         height={height}
         onMouseDown={startDrawing}
@@ -140,7 +160,7 @@ export default function PaintCanvas () {
 
       <p>※次のページへ行く前に必ず保存してください。(消えます！！！)</p>
       <div>
-        <Button variant="outline-primary" onClick={() => {console.log('Clicked Save!')}}>Save</Button>
+        <Button variant="outline-primary" onClick={() => handleSaveClick()}>Save</Button>
         <Button variant="outline-danger" onClick={() => handleClear()}>Clear</Button>
         <Button variant="primary" onClick={() => {console.log('Clicked Complete!')}}>Complete</Button>
       </div>
